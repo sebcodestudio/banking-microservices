@@ -109,4 +109,14 @@ class JwtAuthenticationFilterTest {
 
         verify(chain, times(1)).filter(exchange);
     }
+
+    @Test
+    void permiteCualquierRutaDeYankiSinTokenPorNoRequerirSerClienteDelBanco() {
+        ServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.post("/api/yanki/wallets"));
+
+        filter.filter(exchange, chain).block();
+
+        verify(chain, times(1)).filter(exchange);
+    }
 }

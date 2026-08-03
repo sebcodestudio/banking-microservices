@@ -44,6 +44,11 @@ public class KafkaConfig {
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        // KafkaProducer.send() bloquea el hilo llamante (aqui, un hilo reactivo
+        // compartido) hasta resolver los metadatos del topico; sin este limite
+        // el default es 60s, muy por encima del timeout de 2s que usa el resto
+        // del sistema para "fallar rapido" cuando una dependencia no responde.
+        props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 3000);
         props.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
         return new DefaultKafkaProducerFactory<>(props);
     }

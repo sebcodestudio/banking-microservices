@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Banking Microservices",
-    "description": "Coleccion Postman con todos los endpoints de customer-service, account-service y credit-service. Usar junto con el environment 'Banking Microservices - Local'.",
+    "description": "Coleccion Postman con todos los endpoints de customer-service, account-service, credit-service y yanki-service (Partes I, II y III). Usar junto con el environment 'Banking Microservices - Local'.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -1690,7 +1690,818 @@
       ]
     },
     {
-      "name": "5. Cleanup (ejecutar al final)",
+      "name": "6. Auth (JWT, Fase 13)",
+      "item": [
+        {
+          "name": "Registrar credenciales del cliente personal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{customerServiceUrl}}/api/customers/{{personalCustomerId}}/credentials",
+              "host": [
+                "{{customerServiceUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers",
+                "{{personalCustomerId}}",
+                "credentials"
+              ]
+            },
+            "description": "Da de alta username/password para el cliente personal creado en la carpeta 1. Sin esto no puede loguearse.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"juan.perez\",\n  \"password\": \"ClaveSegura123\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (obtiene el JWT)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{customerServiceUrl}}/api/auth/login",
+              "host": [
+                "{{customerServiceUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Devuelve el token que se usa como Authorization: Bearer en las rutas protegidas del gateway.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"juan.perez\",\n  \"password\": \"ClaveSegura123\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('incluye un token', () => pm.expect(body.token).to.be.a('string').and.not.empty);",
+                  "pm.environment.set('authToken', body.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[Regla de negocio] Rechaza login con contrasena incorrecta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{customerServiceUrl}}/api/auth/login",
+              "host": [
+                "{{customerServiceUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Debe responder 401 sin importar que el username exista.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"juan.perez\",\n  \"password\": \"clave-incorrecta\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 Unauthorized', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Acceder a una ruta protegida via API Gateway con el token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/accounts",
+              "host": [
+                "{{gatewayUrl}}"
+              ],
+              "path": [
+                "api",
+                "accounts"
+              ]
+            },
+            "description": "El JWT solo se valida en el API Gateway (:8080), nunca directo contra cada microservicio. Requiere que api-gateway este corriendo y registrado en Eureka."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK con token valido', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[Regla de negocio] Rechaza una ruta protegida via API Gateway sin token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/accounts",
+              "host": [
+                "{{gatewayUrl}}"
+              ],
+              "path": [
+                "api",
+                "accounts"
+              ]
+            },
+            "description": "Sin header Authorization, el JwtAuthenticationFilter del gateway devuelve 401 antes de reenviar la peticion a account-service."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 Unauthorized sin token', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "7. Debit Cards (Fase 11, Parte III)",
+      "item": [
+        {
+          "name": "Emitir tarjeta de debito sobre la cuenta de ahorro",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{accountServiceUrl}}/api/debit-cards",
+              "host": [
+                "{{accountServiceUrl}}"
+              ],
+              "path": [
+                "api",
+                "debit-cards"
+              ]
+            },
+            "description": "Vincula una tarjeta de debito 1:1 a la cuenta de ahorro personal creada en la carpeta 2. Una cuenta admite como maximo una tarjeta activa.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardNumber\": \"4000-0000-0000-0001\",\n  \"accountId\": \"{{savingsAccountId}}\",\n  \"customerId\": \"{{personalCustomerId}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.environment.set('debitCardId', body.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar tarjetas de debito",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{accountServiceUrl}}/api/debit-cards",
+              "host": [
+                "{{accountServiceUrl}}"
+              ],
+              "path": [
+                "api",
+                "debit-cards"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtener tarjeta de debito por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{accountServiceUrl}}/api/debit-cards/{{debitCardId}}",
+              "host": [
+                "{{accountServiceUrl}}"
+              ],
+              "path": [
+                "api",
+                "debit-cards",
+                "{{debitCardId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[Regla de negocio] Rechaza una segunda tarjeta activa sobre la misma cuenta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{accountServiceUrl}}/api/debit-cards",
+              "host": [
+                "{{accountServiceUrl}}"
+              ],
+              "path": [
+                "api",
+                "debit-cards"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardNumber\": \"4000-0000-0000-0002\",\n  \"accountId\": \"{{savingsAccountId}}\",\n  \"customerId\": \"{{personalCustomerId}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409 Conflict', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pagar con la tarjeta de debito",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{accountServiceUrl}}/api/debit-cards/{{debitCardId}}/payments",
+              "host": [
+                "{{accountServiceUrl}}"
+              ],
+              "path": [
+                "api",
+                "debit-cards",
+                "{{debitCardId}}",
+                "payments"
+              ]
+            },
+            "description": "Reutiliza el mismo mecanismo de retiro/comision que un retiro normal, pero registra el movimiento como DEBIT_CARD_PAYMENT.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 25.50\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar movimientos de la tarjeta de debito",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{accountServiceUrl}}/api/debit-cards/{{debitCardId}}/movements",
+              "host": [
+                "{{accountServiceUrl}}"
+              ],
+              "path": [
+                "api",
+                "debit-cards",
+                "{{debitCardId}}",
+                "movements"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('el pago aparece como DEBIT_CARD_PAYMENT', () => pm.expect(body.some(m => m.movementType === 'DEBIT_CARD_PAYMENT')).to.be.true);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "8. Yanki Wallet (Fase 12, Parte III)",
+      "item": [
+        {
+          "name": "Registrar monedero A (no requiere ser cliente del banco)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{yankiServiceUrl}}/api/yanki/wallets",
+              "host": [
+                "{{yankiServiceUrl}}"
+              ],
+              "path": [
+                "api",
+                "yanki",
+                "wallets"
+              ]
+            },
+            "description": "Solo pide documento, celular, IMEI y correo; no valida contra customer-service.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"documentType\": \"DNI\",\n  \"documentNumber\": \"45678912\",\n  \"phoneNumber\": \"987654321\",\n  \"imei\": \"123456789012345\",\n  \"email\": \"monedero.a@example.com\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.environment.set('walletAId', body.id);",
+                  "pm.environment.set('walletAPhone', body.phoneNumber);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar monedero B",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{yankiServiceUrl}}/api/yanki/wallets",
+              "host": [
+                "{{yankiServiceUrl}}"
+              ],
+              "path": [
+                "api",
+                "yanki",
+                "wallets"
+              ]
+            },
+            "description": "Segundo monedero, usado como destino de la transferencia.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"documentType\": \"DNI\",\n  \"documentNumber\": \"45678913\",\n  \"phoneNumber\": \"912345678\",\n  \"imei\": \"123456789012346\",\n  \"email\": \"monedero.b@example.com\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.environment.set('walletBId', body.id);",
+                  "pm.environment.set('walletBPhone', body.phoneNumber);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[Regla de negocio] Rechaza un segundo monedero con el mismo numero de celular",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{yankiServiceUrl}}/api/yanki/wallets",
+              "host": [
+                "{{yankiServiceUrl}}"
+              ],
+              "path": [
+                "api",
+                "yanki",
+                "wallets"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"documentType\": \"DNI\",\n  \"documentNumber\": \"99999999\",\n  \"phoneNumber\": \"987654321\",\n  \"imei\": \"000000000000000\",\n  \"email\": \"duplicado@example.com\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409 Conflict', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtener monedero A por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{yankiServiceUrl}}/api/yanki/wallets/{{walletAId}}",
+              "host": [
+                "{{yankiServiceUrl}}"
+              ],
+              "path": [
+                "api",
+                "yanki",
+                "wallets",
+                "{{walletAId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vincular monedero A a la tarjeta de debito (asincrono via Kafka)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{yankiServiceUrl}}/api/yanki/wallets/{{walletAId}}/link-debit-card",
+              "host": [
+                "{{yankiServiceUrl}}"
+              ],
+              "path": [
+                "api",
+                "yanki",
+                "wallets",
+                "{{walletAId}}",
+                "link-debit-card"
+              ]
+            },
+            "description": "Publica un evento en yanki.account.requests y responde de inmediato con la operacion en PENDING; requiere que Kafka este corriendo (docker compose up, o un broker local en :9092) para que account-service la resuelva y el estado pase a COMPLETED. Sin Kafka corriendo, esta request responde 500 Internal Server Error a los pocos segundos en vez de 202 (el productor no logra resolver los metadatos del topico y desiste tras max.block.ms=3000).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"debitCardId\": \"{{debitCardId}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('202 Accepted', () => pm.response.to.have.status(202));",
+                  "const body = pm.response.json();",
+                  "pm.environment.set('yankiCorrelationId', body.correlationId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar el resultado de la operacion (polling)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{yankiServiceUrl}}/api/yanki/operations/{{yankiCorrelationId}}",
+              "host": [
+                "{{yankiServiceUrl}}"
+              ],
+              "path": [
+                "api",
+                "yanki",
+                "operations",
+                "{{yankiCorrelationId}}"
+              ]
+            },
+            "description": "Repetir manualmente hasta ver status=COMPLETED (o FAILED). Si Kafka no esta corriendo, se queda en PENDING indefinidamente: eso confirma que el request se acepto pero aun no se proceso, no es un error de este request."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cargar saldo al monedero A desde la cuenta vinculada",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{yankiServiceUrl}}/api/yanki/wallets/{{walletAId}}/load",
+              "host": [
+                "{{yankiServiceUrl}}"
+              ],
+              "path": [
+                "api",
+                "yanki",
+                "wallets",
+                "{{walletAId}}",
+                "load"
+              ]
+            },
+            "description": "Tambien asincrono via Kafka (202 Accepted); una vez COMPLETED, debita la cuenta bancaria vinculada y acredita el monedero.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 50.00\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('202 Accepted', () => pm.response.to.have.status(202));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Retirar saldo del monedero A hacia la cuenta vinculada",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{yankiServiceUrl}}/api/yanki/wallets/{{walletAId}}/withdraw",
+              "host": [
+                "{{yankiServiceUrl}}"
+              ],
+              "path": [
+                "api",
+                "yanki",
+                "wallets",
+                "{{walletAId}}",
+                "withdraw"
+              ]
+            },
+            "description": "Efecto inverso a la carga: debita el monedero y acredita la cuenta bancaria.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 10.00\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('202 Accepted', () => pm.response.to.have.status(202));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Transferir saldo del monedero A al monedero B",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{yankiServiceUrl}}/api/yanki/transfers",
+              "host": [
+                "{{yankiServiceUrl}}"
+              ],
+              "path": [
+                "api",
+                "yanki",
+                "transfers"
+              ]
+            },
+            "description": "Transferencia intra-servicio entre dos monederos identificados solo por su numero de celular; no pasa por Kafka.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"senderPhone\": \"{{walletAPhone}}\",\n  \"receiverPhone\": \"{{walletBPhone}}\",\n  \"amount\": 5.00\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar movimientos del monedero A",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{yankiServiceUrl}}/api/yanki/wallets/{{walletAId}}/movements",
+              "host": [
+                "{{yankiServiceUrl}}"
+              ],
+              "path": [
+                "api",
+                "yanki",
+                "wallets",
+                "{{walletAId}}",
+                "movements"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "9. Cleanup (ejecutar al final)",
       "item": [
         {
           "name": "Eliminar cuenta corriente PYME (limpieza Fase 8)",

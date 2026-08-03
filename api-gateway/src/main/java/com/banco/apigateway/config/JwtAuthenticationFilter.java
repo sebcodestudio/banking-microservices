@@ -52,12 +52,18 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         return chain.filter(exchange);
     }
 
-    /** Login y alta de cliente son las unicas rutas alcanzables sin token todavia. */
+    /**
+     * Rutas alcanzables sin token: login, alta de cliente, y todo
+     * {@code yanki-service} completo, ya que el monedero Yanki
+     * explicitamente "no requiere ser cliente del banco" (no tiene forma
+     * de obtener un JWT emitido por customer-service).
+     */
     private boolean isPublic(ServerHttpRequest request) {
         String path = request.getURI().getPath();
         HttpMethod method = request.getMethod();
         return (HttpMethod.POST.equals(method) && "/api/auth/login".equals(path))
-                || (HttpMethod.POST.equals(method) && "/api/customers".equals(path));
+                || (HttpMethod.POST.equals(method) && "/api/customers".equals(path))
+                || path.startsWith("/api/yanki/");
     }
 
     private String extractToken(ServerHttpRequest request) {

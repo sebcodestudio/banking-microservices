@@ -14,7 +14,7 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 
 /**
- * Define las rutas del API Gateway hacia los 3 microservicios de
+ * Define las rutas del API Gateway hacia los 4 microservicios de
  * negocio, resolviendo cada instancia a traves de Eureka
  * ({@code lb://<nombre-de-la-app>}), y aplica un circuit breaker de
  * Resilience4j con timeout de 2 segundos en cada una. Si el
@@ -34,6 +34,16 @@ public class GatewayConfig {
                                 .setName("customerServiceCB")
                                 .setFallbackUri("forward:/fallback/customer-service")))
                         .uri("lb://customer-service"))
+                .route("auth-service", r -> r.path("/api/auth/**")
+                        .filters(f -> f.circuitBreaker(c -> c
+                                .setName("customerServiceCB")
+                                .setFallbackUri("forward:/fallback/customer-service")))
+                        .uri("lb://customer-service"))
+                .route("yanki-service", r -> r.path("/api/yanki/**")
+                        .filters(f -> f.circuitBreaker(c -> c
+                                .setName("yankiServiceCB")
+                                .setFallbackUri("forward:/fallback/yanki-service")))
+                        .uri("lb://yanki-service"))
                 .route("account-service", r -> r.path("/api/accounts/**")
                         .filters(f -> f.circuitBreaker(c -> c
                                 .setName("accountServiceCB")
