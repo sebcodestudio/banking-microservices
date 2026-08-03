@@ -10,8 +10,13 @@ target/
 *.log
 logs/
 
-# Pruebas/scripts locales no versionados (ver docs/verification/*)
+# Pruebas/scripts locales no versionados
 testrun/
+
+# No se publican en GitHub (se mantienen solo en local)
+/docs/
+/nota.md
+/Proyecto_General_vf.md
 
 # IDEs
 .idea/
