@@ -1,0 +1,28 @@
+server:
+  port: 8084
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/yanki_db
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: yanki-service
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false
+    producer:
+      properties:
+        spring.json.add.type.headers: false
+
+springdoc:
+  swagger-ui:
+    url: /openapi/yanki-service.yaml
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true

@@ -1,0 +1,83 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Customer Service - Crear Cliente" id="Customer_Service_-_Crear_Cliente">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Customer Service - Crear Cliente" style="text;html=1;fontSize=16;fontStyle=1;align=left;" vertex="1" parent="1">
+      <mxGeometry x="20" y="0" width="600" height="30" as="geometry" />
+    </mxCell><mxCell id="actor0" value="Cliente / Postman" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="40" y="40" width="160" height="40" as="geometry" />
+    </mxCell><mxCell id="lifeline0" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+      <mxPoint x="120.0" y="80" as="sourcePoint" />
+      <mxPoint x="120.0" y="600" as="targetPoint" />
+    </mxCell><mxCell id="actor1" value="CustomerController" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="260" y="40" width="160" height="40" as="geometry" />
+    </mxCell><mxCell id="lifeline1" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+      <mxPoint x="340.0" y="80" as="sourcePoint" />
+      <mxPoint x="340.0" y="600" as="targetPoint" />
+    </mxCell><mxCell id="actor2" value="CustomerService" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="480" y="40" width="160" height="40" as="geometry" />
+    </mxCell><mxCell id="lifeline2" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+      <mxPoint x="560.0" y="80" as="sourcePoint" />
+      <mxPoint x="560.0" y="600" as="targetPoint" />
+    </mxCell><mxCell id="actor3" value="CustomerRepository" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="700" y="40" width="160" height="40" as="geometry" />
+    </mxCell><mxCell id="lifeline3" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+      <mxPoint x="780.0" y="80" as="sourcePoint" />
+      <mxPoint x="780.0" y="600" as="targetPoint" />
+    </mxCell><mxCell id="actor4" value="MongoDB (customer_db)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="920" y="40" width="160" height="40" as="geometry" />
+    </mxCell><mxCell id="lifeline4" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+      <mxPoint x="1000.0" y="80" as="sourcePoint" />
+      <mxPoint x="1000.0" y="600" as="targetPoint" />
+    </mxCell><mxCell id="msg0" value="POST /api/customers  (Customer)" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="120.0" y="120" as="sourcePoint" />
+        <mxPoint x="340.0" y="120" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg1" value="create(customer)" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="340.0" y="180" as="sourcePoint" />
+        <mxPoint x="560.0" y="180" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg2" value="save(customer)" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="560.0" y="240" as="sourcePoint" />
+        <mxPoint x="780.0" y="240" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg3" value="insert documento en &#x27;customers&#x27;" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="780.0" y="300" as="sourcePoint" />
+        <mxPoint x="1000.0" y="300" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg4" value="documento guardado" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1000.0" y="360" as="sourcePoint" />
+        <mxPoint x="780.0" y="360" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg5" value="Mono&lt;Customer&gt;" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="780.0" y="420" as="sourcePoint" />
+        <mxPoint x="560.0" y="420" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg6" value="Mono&lt;Customer&gt;" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="560.0" y="480" as="sourcePoint" />
+        <mxPoint x="340.0" y="480" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg7" value="201 Created + Customer" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="340.0" y="540" as="sourcePoint" />
+        <mxPoint x="120.0" y="540" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

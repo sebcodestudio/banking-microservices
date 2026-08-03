@@ -1,0 +1,50 @@
+server:
+  port: 8083
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://account-mongo:27017/account_db
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      group-id: account-service
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false
+    producer:
+      properties:
+        spring.json.add.type.headers: false
+
+springdoc:
+  swagger-ui:
+    url: /openapi/account-service.yaml
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      customerServiceCB:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+      creditServiceCB:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+  timelimiter:
+    instances:
+      customerServiceCB:
+        timeoutDuration: 2s
+        cancelRunningFuture: true
+      creditServiceCB:
+        timeoutDuration: 2s
+        cancelRunningFuture: true

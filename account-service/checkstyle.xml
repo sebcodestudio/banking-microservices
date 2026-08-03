@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+        "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+        "https://checkstyle.org/dtds/configuration_1_3.dtd">
+
+<!--
+    Configuracion base de Checkstyle para el sistema bancario de
+    microservicios. Se ejecuta en la fase "verify" de cada microservicio
+    (ver maven-checkstyle-plugin en cada pom.xml) en modo no bloqueante
+    (failOnViolation=false): reporta advertencias de estilo sin romper
+    el build, para adoptarlo gradualmente sin frenar el desarrollo.
+-->
+<module name="Checker">
+
+    <property name="charset" value="UTF-8"/>
+    <property name="severity" value="warning"/>
+    <property name="fileExtensions" value="java"/>
+
+    <!-- Tamano de archivo y de linea -->
+    <module name="FileLength">
+        <property name="max" value="500"/>
+    </module>
+    <module name="LineLength">
+        <property name="max" value="140"/>
+        <property name="ignorePattern" value="^import .*$"/>
+    </module>
+
+    <module name="TreeWalker">
+
+        <!-- Convenciones de nombres -->
+        <module name="TypeName"/>
+        <module name="MethodName"/>
+        <module name="MemberName"/>
+        <module name="ParameterName"/>
+        <module name="LocalVariableName"/>
+        <module name="ConstantName"/>
+        <module name="PackageName"/>
+
+        <!-- Imports -->
+        <module name="UnusedImports"/>
+        <module name="RedundantImport"/>
+        <module name="AvoidStarImport"/>
+
+        <!-- Bloques y estilo -->
+        <module name="EmptyBlock">
+            <property name="option" value="text"/>
+        </module>
+        <module name="NeedBraces"/>
+        <module name="LeftCurly"/>
+        <module name="RightCurly"/>
+
+        <!-- Buenas practicas -->
+        <module name="EqualsHashCode"/>
+        <module name="SimplifyBooleanExpression"/>
+        <module name="SimplifyBooleanReturn"/>
+        <module name="MagicNumber">
+            <property name="ignoreNumbers" value="-1, 0, 1, 2"/>
+            <property name="ignoreAnnotation" value="true"/>
+        </module>
+
+        <!-- Javadoc: exige comentario en clases/interfaces publicas -->
+        <module name="MissingJavadocType">
+            <property name="scope" value="public"/>
+        </module>
+
+        <!-- Espaciado -->
+        <module name="WhitespaceAround"/>
+        <module name="ModifierOrder"/>
+
+    </module>
+
+</module>

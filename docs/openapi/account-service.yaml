@@ -1,0 +1,804 @@
+openapi: 3.0.3
+info:
+  title: Account Service API
+  description: >
+    Microservicio encargado de administrar los productos pasivos del banco
+    (cuentas de ahorro, corriente y a plazo fijo). Sigue el patron database
+    per service, usando MongoDB como repositorio exclusivo de este servicio,
+    y valida el tipo de cliente contra customer-service antes de abrir
+    una cuenta.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8083
+    description: Entorno local
+
+tags:
+  - name: Accounts
+    description: Operaciones CRUD y bancarias sobre el recurso Account
+  - name: DebitCards
+    description: Tarjetas de debito asociadas a una cuenta bancaria (Fase 11, Parte III)
+
+paths:
+  /api/accounts:
+    get:
+      tags: [Accounts]
+      operationId: findAllAccounts
+      summary: Obtiene todas las cuentas registradas
+      responses:
+        "200":
+          description: Lista de cuentas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BankAccount"
+    post:
+      tags: [Accounts]
+      operationId: createAccount
+      summary: Abre una nueva cuenta (ahorro, corriente o plazo fijo)
+      description: >
+        Valida contra customer-service el tipo de cliente (personal /
+        empresarial) y aplica las reglas de negocio correspondientes antes
+        de crear la cuenta.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BankAccountRequest"
+      responses:
+        "201":
+          description: Cuenta creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankAccount"
+        "400":
+          description: >
+            Datos invalidos, regla de negocio incumplida (p.ej. cliente
+            empresarial abriendo ahorro), monto de apertura menor al
+            minimo requerido, o perfil VIP/PYME sin una tarjeta de
+            credito previa con el banco (Fase 8).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: El cliente ya tiene una cuenta de este tipo que no admite duplicados
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/accounts/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Identificador de la cuenta
+        schema:
+          type: string
+    get:
+      tags: [Accounts]
+      operationId: findAccountById
+      summary: Obtiene una cuenta por su identificador
+      responses:
+        "200":
+          description: Cuenta encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankAccount"
+        "404":
+          description: Cuenta no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    put:
+      tags: [Accounts]
+      operationId: updateAccount
+      summary: Actualiza los datos de una cuenta existente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BankAccountRequest"
+      responses:
+        "200":
+          description: Cuenta actualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankAccount"
+        "400":
+          description: Datos invalidos, o intento de cambiar el tipo de cuenta
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Cuenta no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    delete:
+      tags: [Accounts]
+      operationId: deleteAccount
+      summary: Elimina una cuenta por su identificador
+      responses:
+        "204":
+          description: Cuenta eliminada
+        "404":
+          description: Cuenta no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/accounts/{id}/balance:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Accounts]
+      operationId: getAccountBalance
+      summary: Consulta el saldo disponible de una cuenta
+      responses:
+        "200":
+          description: Saldo actual de la cuenta
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankAccount"
+        "404":
+          description: Cuenta no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/accounts/{id}/deposits:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags: [Accounts]
+      operationId: depositToAccount
+      summary: Registra un deposito sobre la cuenta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MovementRequest"
+      responses:
+        "201":
+          description: Deposito registrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountMovement"
+        "400":
+          description: Monto invalido o regla de movimientos incumplida (limite mensual / dia de plazo fijo)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Cuenta no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/accounts/{id}/withdrawals:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags: [Accounts]
+      operationId: withdrawFromAccount
+      summary: Registra un retiro sobre la cuenta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MovementRequest"
+      responses:
+        "201":
+          description: Retiro registrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountMovement"
+        "400":
+          description: Fondos insuficientes, monto invalido o regla de movimientos incumplida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Cuenta no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/accounts/{id}/movements:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Accounts]
+      operationId: getAccountMovements
+      summary: Consulta el historial de movimientos de una cuenta
+      responses:
+        "200":
+          description: Movimientos de la cuenta, del mas reciente al mas antiguo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AccountMovement"
+        "404":
+          description: Cuenta no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/accounts/{id}/movements/report:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Accounts]
+      operationId: getAccountMovementsReport
+      summary: >
+        Reporte general de movimientos de una cuenta en un intervalo de
+        fechas especificado por el usuario (Fase 9)
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Movimientos de la cuenta dentro del intervalo indicado, del mas reciente al mas antiguo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AccountMovement"
+        "404":
+          description: Cuenta no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/accounts/{id}/transfers:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Identificador de la cuenta origen
+        schema:
+          type: string
+    post:
+      tags: [Accounts]
+      operationId: transferBetweenAccounts
+      summary: >
+        Transfiere fondos desde esta cuenta hacia otra del mismo cliente o
+        de un tercero del mismo banco (Fase 9)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferRequest"
+      responses:
+        "201":
+          description: Transferencia realizada; incluye el movimiento de salida en origen y el de entrada en destino
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransferResult"
+        "400":
+          description: >
+            Monto invalido, cuenta origen y destino iguales, fondos
+            insuficientes, o regla de movimientos incumplida en alguna de
+            las dos cuentas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Cuenta origen o destino no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/debit-cards:
+    get:
+      tags: [DebitCards]
+      operationId: findAllDebitCards
+      summary: Obtiene todas las tarjetas de debito registradas
+      responses:
+        "200":
+          description: Lista de tarjetas de debito
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DebitCard"
+    post:
+      tags: [DebitCards]
+      operationId: issueDebitCard
+      summary: Emite una tarjeta de debito para una cuenta bancaria existente del mismo cliente (Fase 11)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DebitCardRequest"
+      responses:
+        "201":
+          description: Tarjeta emitida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DebitCard"
+        "400":
+          description: La cuenta indicada no pertenece al cliente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Cuenta no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: La cuenta ya tiene una tarjeta de debito
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/debit-cards/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [DebitCards]
+      operationId: findDebitCardById
+      summary: Obtiene una tarjeta de debito por su identificador
+      responses:
+        "200":
+          description: Tarjeta encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DebitCard"
+        "404":
+          description: Tarjeta no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/debit-cards/{id}/payments:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags: [DebitCards]
+      operationId: payWithDebitCard
+      summary: Registra un pago con la tarjeta, cargado como retiro a la cuenta vinculada (Fase 11)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MovementRequest"
+      responses:
+        "201":
+          description: Pago registrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountMovement"
+        "400":
+          description: Fondos insuficientes o monto invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Tarjeta no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/debit-cards/{id}/movements:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [DebitCards]
+      operationId: getDebitCardMovements
+      summary: Consulta el historial de pagos realizados con la tarjeta
+      responses:
+        "200":
+          description: Movimientos de la tarjeta, del mas reciente al mas antiguo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AccountMovement"
+        "404":
+          description: Tarjeta no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+components:
+  schemas:
+    AccountStatus:
+      type: string
+      enum: [ACTIVE, INACTIVE, CLOSED]
+
+    MovementType:
+      type: string
+      enum: [DEPOSIT, WITHDRAWAL, FEE, TRANSFER_OUT, TRANSFER_IN, DEBIT_CARD_PAYMENT]
+      description: >
+        FEE representa la comision cobrada al superar el limite de
+        transacciones gratuitas del mes (Fase 8). TRANSFER_OUT/TRANSFER_IN
+        representan, respectivamente, la salida y la entrada de fondos de
+        una transferencia entre cuentas (Fase 9). DEBIT_CARD_PAYMENT es un
+        pago con tarjeta de debito, cargado como retiro a la cuenta
+        vinculada (Fase 11, Parte III).
+
+    BankAccountCommon:
+      type: object
+      required: [accountType, accountNumber, customerId, currency, holders, freeMonthlyTransactionLimit, transactionFeeAmount]
+      properties:
+        accountType:
+          type: string
+          enum: [SAVINGS, CHECKING, FIXED_TERM]
+        accountNumber:
+          type: string
+          example: "001-1234567890"
+        customerId:
+          type: string
+          description: Id del cliente titular principal, tal como lo expone customer-service
+          example: "64f1a2b3c4d5e6f7a8b9c0d1"
+        balance:
+          type: number
+          format: double
+          default: 0
+          description: Monto inicial de apertura (debe ser mayor o igual a minimumOpeningAmount) al crear la cuenta; saldo actual en las siguientes consultas.
+          example: 500.00
+        currency:
+          type: string
+          example: "PEN"
+        minimumOpeningAmount:
+          type: number
+          format: double
+          default: 0
+          description: Monto minimo requerido para abrir la cuenta (Fase 8); puede ser cero.
+          example: 0
+        freeMonthlyTransactionLimit:
+          type: integer
+          description: Cantidad de depositos/retiros que no cobran comision dentro de un mismo mes (Fase 8).
+          example: 5
+        transactionFeeAmount:
+          type: number
+          format: double
+          description: Comision cobrada por cada transaccion que exceda el limite gratuito (Fase 8); puede ser cero.
+          example: 3.50
+        status:
+          $ref: "#/components/schemas/AccountStatus"
+        openingDate:
+          type: string
+          format: date
+        holders:
+          type: array
+          description: Ids de clientes titulares. Si se omite, se usa customerId como unico titular.
+          items:
+            type: string
+        authorizedSigners:
+          type: array
+          description: Ids de firmantes autorizados (solo aplica a cuentas corrientes empresariales)
+          items:
+            type: string
+
+    SavingsAccountRequest:
+      allOf:
+        - $ref: "#/components/schemas/BankAccountCommon"
+        - type: object
+          required: [monthlyMovementLimit]
+          properties:
+            accountType:
+              type: string
+              enum: [SAVINGS]
+            monthlyMovementLimit:
+              type: integer
+              description: Cantidad maxima de movimientos (depositos + retiros) permitidos por mes
+              example: 5
+            minimumDailyAverageBalance:
+              type: number
+              format: double
+              description: >
+                Monto minimo de promedio diario mensual (Fase 8). Obligatorio
+                y mayor a cero unicamente cuando el cliente titular tiene
+                perfil VIP en customer-service; en caso contrario se ignora.
+              example: 1000.00
+
+    CheckingAccountRequest:
+      allOf:
+        - $ref: "#/components/schemas/BankAccountCommon"
+        - type: object
+          required: [maintenanceFee]
+          properties:
+            accountType:
+              type: string
+              enum: [CHECKING]
+            maintenanceFee:
+              type: number
+              format: double
+              description: >
+                Comision de mantenimiento. Si el cliente titular
+                (empresarial) tiene perfil PYME en customer-service, se
+                fuerza a 0 sin importar el valor enviado (Fase 8).
+              example: 15.00
+
+    FixedTermAccountRequest:
+      allOf:
+        - $ref: "#/components/schemas/BankAccountCommon"
+        - type: object
+          required: [specificMovementDay, termMonths]
+          properties:
+            accountType:
+              type: string
+              enum: [FIXED_TERM]
+            specificMovementDay:
+              type: integer
+              minimum: 1
+              maximum: 31
+              description: Dia del mes en que se permite el unico movimiento del periodo
+              example: 15
+            termMonths:
+              type: integer
+              example: 12
+
+    BankAccountRequest:
+      description: Payload de creacion/actualizacion de cuenta, discriminado por accountType.
+      oneOf:
+        - $ref: "#/components/schemas/SavingsAccountRequest"
+        - $ref: "#/components/schemas/CheckingAccountRequest"
+        - $ref: "#/components/schemas/FixedTermAccountRequest"
+      discriminator:
+        propertyName: accountType
+        mapping:
+          SAVINGS: "#/components/schemas/SavingsAccountRequest"
+          CHECKING: "#/components/schemas/CheckingAccountRequest"
+          FIXED_TERM: "#/components/schemas/FixedTermAccountRequest"
+
+    SavingsAccount:
+      allOf:
+        - $ref: "#/components/schemas/SavingsAccountRequest"
+        - type: object
+          properties:
+            id:
+              type: string
+              readOnly: true
+            createdAt:
+              type: string
+              format: date-time
+              readOnly: true
+            updatedAt:
+              type: string
+              format: date-time
+              readOnly: true
+
+    CheckingAccount:
+      allOf:
+        - $ref: "#/components/schemas/CheckingAccountRequest"
+        - type: object
+          properties:
+            id:
+              type: string
+              readOnly: true
+            createdAt:
+              type: string
+              format: date-time
+              readOnly: true
+            updatedAt:
+              type: string
+              format: date-time
+              readOnly: true
+
+    FixedTermAccount:
+      allOf:
+        - $ref: "#/components/schemas/FixedTermAccountRequest"
+        - type: object
+          properties:
+            id:
+              type: string
+              readOnly: true
+            createdAt:
+              type: string
+              format: date-time
+              readOnly: true
+            updatedAt:
+              type: string
+              format: date-time
+              readOnly: true
+
+    BankAccount:
+      description: Cuenta bancaria, discriminada por accountType.
+      oneOf:
+        - $ref: "#/components/schemas/SavingsAccount"
+        - $ref: "#/components/schemas/CheckingAccount"
+        - $ref: "#/components/schemas/FixedTermAccount"
+      discriminator:
+        propertyName: accountType
+        mapping:
+          SAVINGS: "#/components/schemas/SavingsAccount"
+          CHECKING: "#/components/schemas/CheckingAccount"
+          FIXED_TERM: "#/components/schemas/FixedTermAccount"
+
+    MovementRequest:
+      type: object
+      required: [amount]
+      properties:
+        amount:
+          type: number
+          format: double
+          example: 100.00
+
+    AccountMovement:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        accountId:
+          type: string
+        movementType:
+          $ref: "#/components/schemas/MovementType"
+        amount:
+          type: number
+          format: double
+        balanceAfter:
+          type: number
+          format: double
+          readOnly: true
+        movementDate:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+
+    TransferRequest:
+      type: object
+      required: [destinationAccountId, amount]
+      properties:
+        destinationAccountId:
+          type: string
+          description: Id de la cuenta destino; puede pertenecer al mismo cliente o a un tercero del mismo banco
+          example: "64f1a2b3c4d5e6f7a8b9c0d2"
+        amount:
+          type: number
+          format: double
+          example: 100.00
+
+    TransferResult:
+      type: object
+      properties:
+        sourceMovement:
+          $ref: "#/components/schemas/AccountMovement"
+        destinationMovement:
+          $ref: "#/components/schemas/AccountMovement"
+
+    DebitCardStatus:
+      type: string
+      enum: [ACTIVE, BLOCKED]
+
+    DebitCardRequest:
+      type: object
+      required: [cardNumber, accountId, customerId]
+      properties:
+        cardNumber:
+          type: string
+          example: "4000-0000-0001"
+        accountId:
+          type: string
+          description: Id de la cuenta bancaria a la que se cargan los pagos
+          example: "64f1a2b3c4d5e6f7a8b9c0d1"
+        customerId:
+          type: string
+          description: Id del cliente titular; debe coincidir con el titular de la cuenta
+          example: "64f1a2b3c4d5e6f7a8b9c0d2"
+        status:
+          $ref: "#/components/schemas/DebitCardStatus"
+
+    DebitCard:
+      allOf:
+        - $ref: "#/components/schemas/DebitCardRequest"
+        - type: object
+          properties:
+            id:
+              type: string
+              readOnly: true
+            createdAt:
+              type: string
+              format: date-time
+              readOnly: true
+
+    ApiError:
+      type: object
+      description: Detalle de error en formato RFC 7807 (ProblemDetail)
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri

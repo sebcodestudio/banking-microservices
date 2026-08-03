@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: api-gateway
+  config:
+    import: "optional:configserver:http://localhost:8888"
+
+# Fase 13: JwtAuthenticationFilter necesita jwt.secret para poder instanciarse;
+# valor solo para que el contexto de test arranque, no es el secreto real.
+jwt:
+  secret: "test-secret-solo-para-que-el-contexto-de-test-arranque-1234567890"

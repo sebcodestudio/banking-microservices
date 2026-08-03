@@ -1,0 +1,25 @@
+server:
+  port: 8081
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://customer-mongo:27017/customer_db
+    redis:
+      host: customer-redis
+      port: 6379
+
+springdoc:
+  swagger-ui:
+    url: /openapi/customer-service.yaml
+
+jwt:
+  secret: "banco-parte3-jwt-secret-compartido-entre-customer-service-y-api-gateway-cambiar-en-produccion"
+  expiration-seconds: 3600
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+  instance:
+    prefer-ip-address: true

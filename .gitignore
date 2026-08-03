@@ -1,0 +1,38 @@
+# Claude Code — nunca subir archivos/config de la sesión de IA
+.claude/
+CLAUDE.md
+
+# Builds de Maven (uno por microservicio)
+target/
+*.class
+
+# Logs (incluye los generados en la raiz durante pruebas locales)
+*.log
+logs/
+
+# Pruebas/scripts locales no versionados (ver docs/verification/*)
+testrun/
+
+# IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+bin/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Variables de entorno / secretos locales
+.env
+.env.*
+
+# Empaquetado Maven
+dependency-reduced-pom.xml
+release.properties
+pom.xml.releaseBackup

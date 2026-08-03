@@ -1,0 +1,658 @@
+openapi: 3.0.3
+info:
+  title: Credit Service API
+  description: >
+    Microservicio encargado de administrar los productos activos del banco
+    (credito personal, credito empresarial y tarjeta de credito). Sigue el
+    patron database per service, usando MongoDB como repositorio exclusivo
+    de este servicio, y valida el tipo de cliente contra customer-service
+    antes de otorgar un credito.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8082
+    description: Entorno local
+
+tags:
+  - name: Credits
+    description: Operaciones CRUD y de credito sobre el recurso Credit
+
+paths:
+  /api/credits:
+    get:
+      tags: [Credits]
+      operationId: findAllCredits
+      summary: Obtiene todos los creditos registrados
+      responses:
+        "200":
+          description: Lista de creditos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CreditProduct"
+    post:
+      tags: [Credits]
+      operationId: createCredit
+      summary: Otorga un nuevo credito (personal, empresarial o tarjeta de credito)
+      description: >
+        Valida contra customer-service el tipo de cliente (personal /
+        empresarial) y aplica las reglas de negocio correspondientes antes
+        de otorgar el credito.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreditProductRequest"
+      responses:
+        "201":
+          description: Credito otorgado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditProduct"
+        "400":
+          description: Datos invalidos o regla de negocio incumplida (p.ej. tipo de cliente incorrecto para el credito solicitado)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: El cliente personal ya tiene un credito personal activo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/credits/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Identificador del credito
+        schema:
+          type: string
+    get:
+      tags: [Credits]
+      operationId: findCreditById
+      summary: Obtiene un credito por su identificador
+      responses:
+        "200":
+          description: Credito encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditProduct"
+        "404":
+          description: Credito no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    put:
+      tags: [Credits]
+      operationId: updateCredit
+      summary: Actualiza los datos de un credito existente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreditProductRequest"
+      responses:
+        "200":
+          description: Credito actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditProduct"
+        "400":
+          description: Datos invalidos, o intento de cambiar el tipo de credito
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Credito no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    delete:
+      tags: [Credits]
+      operationId: deleteCredit
+      summary: Elimina un credito por su identificador
+      responses:
+        "204":
+          description: Credito eliminado
+        "404":
+          description: Credito no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/credits/{id}/balance:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Credits]
+      operationId: getCreditBalance
+      summary: Consulta el saldo (deuda o consumo) disponible de un credito
+      responses:
+        "200":
+          description: Saldo actual del credito
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditProduct"
+        "404":
+          description: Credito no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/credits/{id}/payments:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags: [Credits]
+      operationId: payCredit
+      summary: Registra un pago hacia la deuda de un credito personal, empresarial o de tarjeta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MovementRequest"
+      responses:
+        "201":
+          description: Pago registrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditMovement"
+        "400":
+          description: Monto invalido o el pago excede el saldo pendiente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Credito no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/credits/{id}/consumptions:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags: [Credits]
+      operationId: consumeCredit
+      summary: Registra un consumo sobre una tarjeta de credito
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MovementRequest"
+      responses:
+        "201":
+          description: Consumo registrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditMovement"
+        "400":
+          description: Monto invalido, el credito no es una tarjeta, o el consumo excede el limite disponible
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Credito no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/credits/{id}/movements:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Credits]
+      operationId: getCreditMovements
+      summary: Consulta el historial de movimientos de un credito
+      responses:
+        "200":
+          description: Movimientos del credito, del mas reciente al mas antiguo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CreditMovement"
+        "404":
+          description: Credito no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/credits/customers/{customerId}/has-credit-card:
+    parameters:
+      - name: customerId
+        in: path
+        required: true
+        description: Identificador del cliente, tal como lo expone customer-service
+        schema:
+          type: string
+    get:
+      tags: [Credits]
+      operationId: hasActiveCreditCard
+      summary: Indica si el cliente ya tiene una tarjeta de credito activa con el banco
+      description: >
+        Endpoint de uso interno (Fase 8), consumido por account-service
+        para validar el requisito de "tarjeta de credito previa" de los
+        perfiles VIP (cuenta de ahorro) y PYME (cuenta corriente) antes
+        de abrir esa cuenta.
+      responses:
+        "200":
+          description: true si el cliente tiene al menos una tarjeta de credito con status ACTIVE
+          content:
+            application/json:
+              schema:
+                type: boolean
+                example: true
+
+  /api/credits/customers/{customerId}/has-overdue-debt:
+    parameters:
+      - name: customerId
+        in: path
+        required: true
+        description: Identificador del cliente, tal como lo expone customer-service
+        schema:
+          type: string
+    get:
+      tags: [Credits]
+      operationId: hasOverdueDebt
+      summary: Indica si el cliente tiene deuda vencida en algun producto de credito propio (Fase 10, Parte III)
+      description: >
+        Endpoint de uso interno, consumido por account-service para
+        rechazar la apertura de una cuenta nueva a ese cliente; tambien se
+        usa localmente en credit-service antes de otorgar un credito
+        nuevo. Un credito esta vencido cuando tiene balance pendiente y su
+        nextPaymentDueDate ya paso.
+      responses:
+        "200":
+          description: true si el cliente tiene al menos un credito con balance pendiente y cuota vencida
+          content:
+            application/json:
+              schema:
+                type: boolean
+                example: false
+
+  /api/credits/{id}/movements/report:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Credits]
+      operationId: getCreditMovementsReport
+      summary: >
+        Reporte general de movimientos de un credito en un intervalo de
+        fechas especificado por el usuario (Fase 9)
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Movimientos del credito dentro del intervalo indicado, del mas reciente al mas antiguo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CreditMovement"
+        "404":
+          description: Credito no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /api/credits/{id}/movements/last-10:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Credits]
+      operationId: getLastTenCreditCardMovements
+      summary: Reporte con los ultimos 10 movimientos de una tarjeta de credito (Fase 9)
+      description: >
+        Solo aplica a productos de tipo CREDIT_CARD. El reporte
+        equivalente de tarjeta de debito (ver account-service.yaml,
+        DebitCard, Fase 11) queda pendiente: es un recurso distinto en
+        otro servicio y no se agrego un reporte analogo en esta sesion.
+      responses:
+        "200":
+          description: Hasta 10 movimientos mas recientes de la tarjeta
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CreditMovement"
+        "400":
+          description: El credito indicado no es una tarjeta de credito
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Credito no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+components:
+  schemas:
+    CreditStatus:
+      type: string
+      enum: [ACTIVE, PAID, CLOSED]
+
+    CreditMovementType:
+      type: string
+      enum: [PAYMENT, CONSUMPTION]
+
+    CreditProductCommon:
+      type: object
+      required: [creditType, creditNumber, customerId, currency]
+      properties:
+        creditType:
+          type: string
+          enum: [PERSONAL, BUSINESS, CREDIT_CARD]
+        creditNumber:
+          type: string
+          example: "CR-0001234567"
+        customerId:
+          type: string
+          description: Id del cliente titular, tal como lo expone customer-service
+          example: "64f1a2b3c4d5e6f7a8b9c0d1"
+        balance:
+          type: number
+          format: double
+          readOnly: true
+          description: >
+            Para credito personal/empresarial: deuda pendiente. Para tarjeta
+            de credito: consumo acumulado. Se calcula automaticamente al
+            otorgar el credito y al registrar pagos/consumos.
+          example: 0
+        currency:
+          type: string
+          example: "PEN"
+        status:
+          $ref: "#/components/schemas/CreditStatus"
+        openingDate:
+          type: string
+          format: date
+        nextPaymentDueDate:
+          type: string
+          format: date
+          readOnly: true
+          description: >
+            Fecha limite de la proxima cuota (Fase 10, Parte III). Se
+            completa a un mes desde el otorgamiento si no se especifica;
+            cada pago que no salda el credito la adelanta un mes, y se
+            limpia cuando queda saldado. Determina si el credito esta
+            "vencido" (ver has-overdue-debt).
+
+    PersonalCreditRequest:
+      allOf:
+        - $ref: "#/components/schemas/CreditProductCommon"
+        - type: object
+          required: [principalAmount, interestRate, termMonths, monthlyPayment]
+          properties:
+            creditType:
+              type: string
+              enum: [PERSONAL]
+            principalAmount:
+              type: number
+              format: double
+              description: Monto original otorgado; se usa como saldo inicial de la deuda
+              example: 10000.00
+            interestRate:
+              type: number
+              format: double
+              description: Tasa de interes anual como fraccion, por ejemplo 0.15 para 15%
+              example: 0.15
+            termMonths:
+              type: integer
+              example: 24
+            monthlyPayment:
+              type: number
+              format: double
+              example: 480.00
+
+    BusinessCreditRequest:
+      allOf:
+        - $ref: "#/components/schemas/CreditProductCommon"
+        - type: object
+          required: [principalAmount, interestRate, termMonths, monthlyPayment]
+          properties:
+            creditType:
+              type: string
+              enum: [BUSINESS]
+            principalAmount:
+              type: number
+              format: double
+              example: 50000.00
+            interestRate:
+              type: number
+              format: double
+              example: 0.18
+            termMonths:
+              type: integer
+              example: 36
+            monthlyPayment:
+              type: number
+              format: double
+              example: 1800.00
+
+    CreditCardRequest:
+      allOf:
+        - $ref: "#/components/schemas/CreditProductCommon"
+        - type: object
+          required: [creditLimit]
+          properties:
+            creditType:
+              type: string
+              enum: [CREDIT_CARD]
+            creditLimit:
+              type: number
+              format: double
+              example: 5000.00
+
+    CreditProductRequest:
+      description: Payload de creacion/actualizacion de credito, discriminado por creditType.
+      oneOf:
+        - $ref: "#/components/schemas/PersonalCreditRequest"
+        - $ref: "#/components/schemas/BusinessCreditRequest"
+        - $ref: "#/components/schemas/CreditCardRequest"
+      discriminator:
+        propertyName: creditType
+        mapping:
+          PERSONAL: "#/components/schemas/PersonalCreditRequest"
+          BUSINESS: "#/components/schemas/BusinessCreditRequest"
+          CREDIT_CARD: "#/components/schemas/CreditCardRequest"
+
+    PersonalCredit:
+      allOf:
+        - $ref: "#/components/schemas/PersonalCreditRequest"
+        - type: object
+          properties:
+            id:
+              type: string
+              readOnly: true
+            createdAt:
+              type: string
+              format: date-time
+              readOnly: true
+            updatedAt:
+              type: string
+              format: date-time
+              readOnly: true
+
+    BusinessCredit:
+      allOf:
+        - $ref: "#/components/schemas/BusinessCreditRequest"
+        - type: object
+          properties:
+            id:
+              type: string
+              readOnly: true
+            createdAt:
+              type: string
+              format: date-time
+              readOnly: true
+            updatedAt:
+              type: string
+              format: date-time
+              readOnly: true
+
+    CreditCard:
+      allOf:
+        - $ref: "#/components/schemas/CreditCardRequest"
+        - type: object
+          properties:
+            id:
+              type: string
+              readOnly: true
+            availableLimit:
+              type: number
+              format: double
+              readOnly: true
+              description: Calculado como creditLimit - balance
+              example: 5000.00
+            createdAt:
+              type: string
+              format: date-time
+              readOnly: true
+            updatedAt:
+              type: string
+              format: date-time
+              readOnly: true
+
+    CreditProduct:
+      description: Producto de credito, discriminado por creditType.
+      oneOf:
+        - $ref: "#/components/schemas/PersonalCredit"
+        - $ref: "#/components/schemas/BusinessCredit"
+        - $ref: "#/components/schemas/CreditCard"
+      discriminator:
+        propertyName: creditType
+        mapping:
+          PERSONAL: "#/components/schemas/PersonalCredit"
+          BUSINESS: "#/components/schemas/BusinessCredit"
+          CREDIT_CARD: "#/components/schemas/CreditCard"
+
+    MovementRequest:
+      type: object
+      required: [amount]
+      properties:
+        amount:
+          type: number
+          format: double
+          example: 100.00
+        payerCustomerId:
+          type: string
+          description: >
+            Opcional, solo aplica a pagos (Fase 10, Parte III): permite
+            que un cliente pague el credito de un tercero. Si se omite,
+            se asume que paga el propio titular.
+          example: "64f1a2b3c4d5e6f7a8b9c0d3"
+
+    CreditMovement:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        creditId:
+          type: string
+        movementType:
+          $ref: "#/components/schemas/CreditMovementType"
+        amount:
+          type: number
+          format: double
+        payerCustomerId:
+          type: string
+          readOnly: true
+          description: >
+            Id de quien realizo el pago (el titular si no se especifico
+            otro); null en movimientos de tipo CONSUMPTION.
+        balanceAfter:
+          type: number
+          format: double
+          readOnly: true
+        movementDate:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+
+    ApiError:
+      type: object
+      description: Detalle de error en formato RFC 7807 (ProblemDetail)
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri

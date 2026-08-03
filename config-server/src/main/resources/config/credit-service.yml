@@ -1,0 +1,34 @@
+server:
+  port: 8082
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/credit_db
+
+springdoc:
+  swagger-ui:
+    url: /openapi/credit-service.yaml
+
+customer-service:
+  base-url: lb://customer-service
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      customerServiceCB:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+  timelimiter:
+    instances:
+      customerServiceCB:
+        timeoutDuration: 2s
+        cancelRunningFuture: true

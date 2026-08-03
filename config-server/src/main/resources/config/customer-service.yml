@@ -1,0 +1,27 @@
+server:
+  port: 8081
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/customer_db
+    redis:
+      host: localhost
+      port: 6379
+
+springdoc:
+  swagger-ui:
+    url: /openapi/customer-service.yaml
+
+# Fase 13: secreto HMAC compartido con api-gateway para firmar/validar el JWT del login.
+# En un entorno real vendria de un vault/secret manager, no en texto plano en el repo.
+jwt:
+  secret: "banco-parte3-jwt-secret-compartido-entre-customer-service-y-api-gateway-cambiar-en-produccion"
+  expiration-seconds: 3600
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true

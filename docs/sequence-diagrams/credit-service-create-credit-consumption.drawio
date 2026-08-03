@@ -1,0 +1,177 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Credit Service - Otorgar Credito y Consumo de Tarjeta" id="Credit_Service_-_Otorgar_Credito_y_Consumo_de_Tarjeta">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Credit Service - Otorgar Credito y Consumo de Tarjeta" style="text;html=1;fontSize=16;fontStyle=1;align=left;" vertex="1" parent="1">
+      <mxGeometry x="20" y="0" width="600" height="30" as="geometry" />
+    </mxCell><mxCell id="actor0" value="Cliente / Postman" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="40" y="40" width="160" height="40" as="geometry" />
+    </mxCell><mxCell id="lifeline0" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+      <mxPoint x="120.0" y="80" as="sourcePoint" />
+      <mxPoint x="120.0" y="1560" as="targetPoint" />
+    </mxCell><mxCell id="actor1" value="CreditController" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="260" y="40" width="160" height="40" as="geometry" />
+    </mxCell><mxCell id="lifeline1" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+      <mxPoint x="340.0" y="80" as="sourcePoint" />
+      <mxPoint x="340.0" y="1560" as="targetPoint" />
+    </mxCell><mxCell id="actor2" value="CreditService" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="480" y="40" width="160" height="40" as="geometry" />
+    </mxCell><mxCell id="lifeline2" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+      <mxPoint x="560.0" y="80" as="sourcePoint" />
+      <mxPoint x="560.0" y="1560" as="targetPoint" />
+    </mxCell><mxCell id="actor3" value="CustomerClient" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="700" y="40" width="160" height="40" as="geometry" />
+    </mxCell><mxCell id="lifeline3" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+      <mxPoint x="780.0" y="80" as="sourcePoint" />
+      <mxPoint x="780.0" y="1560" as="targetPoint" />
+    </mxCell><mxCell id="actor4" value="customer-service" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="920" y="40" width="160" height="40" as="geometry" />
+    </mxCell><mxCell id="lifeline4" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+      <mxPoint x="1000.0" y="80" as="sourcePoint" />
+      <mxPoint x="1000.0" y="1560" as="targetPoint" />
+    </mxCell><mxCell id="actor5" value="CreditProductRepository" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="1140" y="40" width="160" height="40" as="geometry" />
+    </mxCell><mxCell id="lifeline5" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+      <mxPoint x="1220.0" y="80" as="sourcePoint" />
+      <mxPoint x="1220.0" y="1560" as="targetPoint" />
+    </mxCell><mxCell id="actor6" value="MongoDB (credit_db)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="1360" y="40" width="160" height="40" as="geometry" />
+    </mxCell><mxCell id="lifeline6" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+      <mxPoint x="1440.0" y="80" as="sourcePoint" />
+      <mxPoint x="1440.0" y="1560" as="targetPoint" />
+    </mxCell><mxCell id="msg0" value="POST /api/credits  (CreditProduct)" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="120.0" y="120" as="sourcePoint" />
+        <mxPoint x="340.0" y="120" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg1" value="create(credit)" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="340.0" y="180" as="sourcePoint" />
+        <mxPoint x="560.0" y="180" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg2" value="findCustomerById(customerId)" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="560.0" y="240" as="sourcePoint" />
+        <mxPoint x="780.0" y="240" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg3" value="GET /api/customers/{id}" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="780.0" y="300" as="sourcePoint" />
+        <mxPoint x="1000.0" y="300" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg4" value="200 OK + CustomerDto" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1000.0" y="360" as="sourcePoint" />
+        <mxPoint x="780.0" y="360" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg5" value="Mono&lt;CustomerDto&gt;" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="780.0" y="420" as="sourcePoint" />
+        <mxPoint x="560.0" y="420" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg6" value="validar tipo de credito vs tipo de cliente
+(personal: 1 activo max / empresarial: multiple)" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="560.0" y="480" as="sourcePoint" />
+        <mxPoint x="560.0" y="480" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg7" value="save(credit)" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="560.0" y="540" as="sourcePoint" />
+        <mxPoint x="1220.0" y="540" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg8" value="insert documento en &#x27;credits&#x27;" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1220.0" y="600" as="sourcePoint" />
+        <mxPoint x="1440.0" y="600" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg9" value="documento guardado" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1440.0" y="660" as="sourcePoint" />
+        <mxPoint x="1220.0" y="660" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg10" value="Mono&lt;CreditProduct&gt;" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1220.0" y="720" as="sourcePoint" />
+        <mxPoint x="560.0" y="720" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg11" value="Mono&lt;CreditProduct&gt;" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="560.0" y="780" as="sourcePoint" />
+        <mxPoint x="340.0" y="780" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg12" value="201 Created + CreditProduct" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="340.0" y="840" as="sourcePoint" />
+        <mxPoint x="120.0" y="840" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg13" value="POST /api/credits/{id}/consumptions (amount)" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="120.0" y="900" as="sourcePoint" />
+        <mxPoint x="340.0" y="900" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg14" value="consume(id, amount)" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="340.0" y="960" as="sourcePoint" />
+        <mxPoint x="560.0" y="960" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg15" value="findById(id)" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="560.0" y="1020" as="sourcePoint" />
+        <mxPoint x="1220.0" y="1020" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg16" value="Mono&lt;CreditProduct&gt; (CreditCard)" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1220.0" y="1080" as="sourcePoint" />
+        <mxPoint x="560.0" y="1080" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg17" value="validar amount &lt;= availableLimit
+(creditLimit - balance)" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="560.0" y="1140" as="sourcePoint" />
+        <mxPoint x="560.0" y="1140" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg18" value="save(card con nuevo balance) + save(CreditMovement CONSUMPTION)" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="560.0" y="1200" as="sourcePoint" />
+        <mxPoint x="1220.0" y="1200" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg19" value="actualizar balance + insert en &#x27;credit_movements&#x27;" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1220.0" y="1260" as="sourcePoint" />
+        <mxPoint x="1440.0" y="1260" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg20" value="ok" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1440.0" y="1320" as="sourcePoint" />
+        <mxPoint x="1220.0" y="1320" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg21" value="Mono&lt;CreditMovement&gt;" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1220.0" y="1380" as="sourcePoint" />
+        <mxPoint x="560.0" y="1380" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg22" value="Mono&lt;CreditMovement&gt;" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="560.0" y="1440" as="sourcePoint" />
+        <mxPoint x="340.0" y="1440" as="targetPoint" />
+      </mxGeometry>
+    </mxCell><mxCell id="msg23" value="201 Created + CreditMovement" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;strokeColor=#000000;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="340.0" y="1500" as="sourcePoint" />
+        <mxPoint x="120.0" y="1500" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
